@@ -201,21 +201,13 @@
     <script>
 
         let cash = 10000;
-
         let selectedCountry = null;
-
         let selectedElement = null;
-
         let gameStarted = false;
-
         let startingCountry = null;
 
         const ownedCountries = new Set();
 
-
-        /*
-            Country information.
-        */
 
         const countryData = {
 
@@ -271,31 +263,90 @@
         };
 
 
+        /*
+            LOAD SAVED GAME
+        */
+
+        const savedGame =
+            localStorage.getItem("globalEmpireSave");
+
+        if (savedGame) {
+
+            const save =
+                JSON.parse(savedGame);
+
+            cash = save.cash ?? 10000;
+
+            gameStarted =
+                save.gameStarted ?? false;
+
+            startingCountry =
+                save.startingCountry ?? null;
+
+            if (save.ownedCountries) {
+
+                save.ownedCountries.forEach(
+                    country => ownedCountries.add(country)
+                );
+
+            }
+
+        }
+
+
+        function saveGame() {
+
+            const save = {
+
+                cash: cash,
+
+                gameStarted: gameStarted,
+
+                startingCountry: startingCountry,
+
+                ownedCountries:
+                    Array.from(ownedCountries)
+
+            };
+
+            localStorage.setItem(
+                "globalEmpireSave",
+                JSON.stringify(save)
+            );
+
+        }
+
+
+        document.getElementById(
+            "cashAmount"
+        ).innerText =
+            cash.toLocaleString();
+
+
         const svg = d3.select("#map");
 
         const width = window.innerWidth;
 
-        const height = window.innerHeight - 70;
+        const height =
+            window.innerHeight - 70;
 
         svg
             .attr("width", width)
             .attr("height", height);
 
 
-        const projection = d3.geoNaturalEarth1()
+        const projection =
+            d3.geoNaturalEarth1()
             .fitSize(
                 [width - 40, height - 40],
                 { type: "Sphere" }
             );
 
 
-        const path = d3.geoPath()
+        const path =
+            d3.geoPath()
             .projection(projection);
 
-
-        /*
-            Load world map.
-        */
 
         d3.json(
             "https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json"
@@ -318,7 +369,21 @@
                 .data(countries.features)
                 .enter()
                 .append("path")
-                .attr("class", "country")
+                .attr("class", function(d) {
+
+                    let classes = "country";
+
+                    if (
+                        ownedCountries.has(
+                            d.properties.name
+                        )
+                    ) {
+                        classes += " owned";
+                    }
+
+                    return classes;
+
+                })
                 .attr("d", path)
                 .attr("fill", function(d, i) {
 
@@ -344,14 +409,28 @@
 
                 });
 
+
+            /*
+                If a saved game exists,
+                update the interface.
+            */
+
+            if (gameStarted) {
+
+                document.getElementById(
+                    "instruction"
+                ).innerText =
+                    "🌍 Your empire is active.";
+
+            }
+
         });
 
 
-        /*
-            Select a country.
-        */
-
-        function selectCountry(country, element) {
+        function selectCountry(
+            country,
+            element
+        ) {
 
             selectedCountry = country;
 
@@ -360,22 +439,26 @@
 
             document.getElementById(
                 "countryName"
-            ).innerText = country;
+            ).innerText =
+                country;
 
 
             document.getElementById(
                 "countryInfo"
-            ).style.display = "block";
+            ).style.display =
+                "block";
 
 
-            const data = countryData[country];
+            const data =
+                countryData[country];
 
 
             if (data) {
 
                 document.getElementById(
                     "population"
-                ).innerText = data.population;
+                ).innerText =
+                    data.population;
 
                 document.getElementById(
                     "marketBar"
@@ -396,19 +479,23 @@
 
                 document.getElementById(
                     "population"
-                ).innerText = "Unknown";
+                ).innerText =
+                    "Unknown";
 
                 document.getElementById(
                     "marketBar"
-                ).style.width = "50%";
+                ).style.width =
+                    "50%";
 
                 document.getElementById(
                     "demandBar"
-                ).style.width = "50%";
+                ).style.width =
+                    "50%";
 
                 document.getElementById(
                     "policeBar"
-                ).style.width = "50%";
+                ).style.width =
+                    "50%";
 
             }
 
@@ -419,19 +506,23 @@
                 );
 
 
-            if (gameStarted) {
+            if (
+                ownedCountries.has(country)
+            ) {
 
                 document.getElementById(
                     "startMessage"
                 ).innerText =
-                    "Your empire has already started.";
+                    "🏴 You control this country.";
 
                 button.innerText =
-                    "EMPIRE ALREADY STARTED";
+                    "CONTROLLED";
 
                 button.disabled = true;
 
-            } else {
+            }
+
+            else if (!gameStarted) {
 
                 document.getElementById(
                     "startMessage"
@@ -445,12 +536,22 @@
 
             }
 
+            else {
+
+                document.getElementById(
+                    "startMessage"
+                ).innerText =
+                    "This country is not controlled.";
+
+                button.innerText =
+                    "EXPANSION COMING SOON";
+
+                button.disabled = true;
+
+            }
+
         }
 
-
-        /*
-            Start the game.
-        */
 
         function startEmpire() {
 
@@ -466,7 +567,8 @@
 
             gameStarted = true;
 
-            startingCountry = selectedCountry;
+            startingCountry =
+                selectedCountry;
 
 
             ownedCountries.add(
@@ -504,6 +606,9 @@
                 "instruction"
             ).innerText =
                 "🌍 Your empire has begun!";
+
+
+            saveGame();
 
         }
 
