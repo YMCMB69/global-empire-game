@@ -27,7 +27,7 @@
 
         .country {
             position: absolute;
-            padding: 15px;
+            padding: 12px;
             background: #555;
             border: 2px solid white;
             color: white;
@@ -39,26 +39,74 @@
             background: #777;
         }
 
+        #usa {
+            left: 15%;
+            top: 25%;
+        }
+
+        #brazil {
+            left: 30%;
+            top: 55%;
+        }
+
         #southAfrica {
             left: 45%;
-            top: 65%;
+            top: 75%;
+        }
+
+        #uk {
+            left: 48%;
+            top: 20%;
+        }
+
+        #india {
+            left: 65%;
+            top: 45%;
+        }
+
+        #japan {
+            left: 82%;
+            top: 35%;
         }
     </style>
 </head>
 
 <body>
 
-    <h1>GLOBAL POES EMPIRE</h1>
+    <h1>GLOBAL EMPIRE</h1>
 
     <h2>💰 Cash: $10,000</h2>
 
     <div id="map">
 
-        <button
-            class="country"
-            id="southAfrica"
+        <button class="country" id="usa"
+            onclick="selectCountry('USA')">
+            🇺🇸 USA
+        </button>
+
+        <button class="country" id="brazil"
+            onclick="selectCountry('Brazil')">
+            🇧🇷 Brazil
+        </button>
+
+        <button class="country" id="southAfrica"
             onclick="selectCountry('South Africa')">
             🇿🇦 South Africa
+        </button>
+
+        <button class="country" id="uk"
+            onclick="selectCountry('United Kingdom')">
+            🇬🇧 UK
+        </button>
+
+        <button class="country" id="india"
+            onclick="selectCountry('India')">
+            🇮🇳 India
+        </button>
+
+        <button class="country" id="japan"
+            onclick="selectCountry('Japan')">
+            🇯🇵 Japan
         </button>
 
     </div>
