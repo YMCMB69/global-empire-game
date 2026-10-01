@@ -51,6 +51,12 @@
             filter: brightness(1.25);
         }
 
+        .owned {
+            fill: #54e85a !important;
+            stroke: #ffffff;
+            stroke-width: 1.5;
+        }
+
         #countryInfo {
             position: absolute;
             right: 20px;
@@ -102,6 +108,12 @@
             background: #7aff80;
         }
 
+        #expandButton:disabled {
+            background: #555;
+            color: #aaa;
+            cursor: not-allowed;
+        }
+
         #instruction {
             position: absolute;
             left: 20px;
@@ -117,8 +129,15 @@
 <body>
 
     <div id="topbar">
-        <div id="title">🌍 GLOBAL EMPIRE</div>
-        <div id="cash">💰 $10,000</div>
+
+        <div id="title">
+            🌍 GLOBAL EMPIRE
+        </div>
+
+        <div id="cash">
+            💰 $<span id="cashAmount">10,000</span>
+        </div>
+
     </div>
 
     <svg id="map"></svg>
@@ -129,7 +148,9 @@
 
     <div id="countryInfo">
 
-        <div id="countryName">Country</div>
+        <div id="countryName">
+            Country
+        </div>
 
         <div class="stat">
             👥 Population:
@@ -173,31 +194,14 @@
 
     <script>
 
+        let cash = 10000;
+
         let selectedCountry = null;
 
-        const svg = d3.select("#map");
+        let selectedElement = null;
 
-        const width = window.innerWidth;
-        const height = window.innerHeight - 70;
+        const ownedCountries = new Set();
 
-        svg
-            .attr("width", width)
-            .attr("height", height);
-
-        const projection = d3.geoNaturalEarth1()
-            .fitSize(
-                [width - 40, height - 40],
-                { type: "Sphere" }
-            );
-
-        const path = d3.geoPath()
-            .projection(projection);
-
-        /*
-            Our first country database.
-
-            We'll add more detailed countries later.
-        */
 
         const countryData = {
 
@@ -260,6 +264,28 @@
         };
 
 
+        const svg = d3.select("#map");
+
+        const width = window.innerWidth;
+
+        const height = window.innerHeight - 70;
+
+        svg
+            .attr("width", width)
+            .attr("height", height);
+
+
+        const projection = d3.geoNaturalEarth1()
+            .fitSize(
+                [width - 40, height - 40],
+                { type: "Sphere" }
+            );
+
+
+        const path = d3.geoPath()
+            .projection(projection);
+
+
         d3.json(
             "https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json"
         ).then(function(world) {
@@ -270,10 +296,12 @@
                     world.objects.countries
                 );
 
+
             svg.append("rect")
                 .attr("width", width)
                 .attr("height", height)
                 .attr("fill", "#0877b9");
+
 
             svg.selectAll(".country")
                 .data(countries.features)
@@ -298,40 +326,35 @@
                 })
                 .on("click", function(event, d) {
 
-                    let name = "Unknown Country";
-
-                    if (d.properties && d.properties.name) {
-                        name = d.properties.name;
-                    }
-
-                    selectCountry(name);
+                    selectCountry(
+                        d.properties.name,
+                        this
+                    );
 
                 });
 
         });
 
 
-        function selectCountry(country) {
+        function selectCountry(country, element) {
 
             selectedCountry = country;
+
+            selectedElement = element;
+
 
             document.getElementById(
                 "countryName"
             ).innerText = country;
 
-            const data = countryData[country];
 
             document.getElementById(
                 "countryInfo"
             ).style.display = "block";
 
 
-            /*
-                If we have custom data for the country,
-                show it.
+            const data = countryData[country];
 
-                Otherwise generate temporary stats.
-            */
 
             if (data) {
 
@@ -341,15 +364,18 @@
 
                 document.getElementById(
                     "marketBar"
-                ).style.width = data.market + "%";
+                ).style.width =
+                    data.market + "%";
 
                 document.getElementById(
                     "demandBar"
-                ).style.width = data.demand + "%";
+                ).style.width =
+                    data.demand + "%";
 
                 document.getElementById(
                     "policeBar"
-                ).style.width = data.police + "%";
+                ).style.width =
+                    data.police + "%";
 
                 document.getElementById(
                     "cost"
@@ -380,6 +406,28 @@
 
             }
 
+
+            const button =
+                document.getElementById(
+                    "expandButton"
+                );
+
+
+            if (ownedCountries.has(country)) {
+
+                button.innerText = "ALREADY CONTROLLED";
+
+                button.disabled = true;
+
+            } else {
+
+                button.innerText =
+                    "EXPAND INTO COUNTRY";
+
+                button.disabled = false;
+
+            }
+
         }
 
 
@@ -389,11 +437,64 @@
                 return;
             }
 
-            alert(
-                "Expansion into " +
-                selectedCountry +
-                " will be added next!"
+
+            if (ownedCountries.has(selectedCountry)) {
+                return;
+            }
+
+
+            const data =
+                countryData[selectedCountry];
+
+
+            const cost =
+                data ? data.cost : 10000;
+
+
+            if (cash < cost) {
+
+                alert(
+                    "Not enough cash!"
+                );
+
+                return;
+
+            }
+
+
+            cash -= cost;
+
+
+            ownedCountries.add(
+                selectedCountry
             );
+
+
+            if (selectedElement) {
+
+                selectedElement.classList.add(
+                    "owned"
+                );
+
+            }
+
+
+            document.getElementById(
+                "cashAmount"
+            ).innerText =
+                cash.toLocaleString();
+
+
+            const button =
+                document.getElementById(
+                    "expandButton"
+                );
+
+
+            button.innerText =
+                "CONTROLLED";
+
+            button.disabled = true;
 
         }
 
