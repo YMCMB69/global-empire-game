@@ -6,118 +6,185 @@
     <style>
         body {
             margin: 0;
-            background: #111;
+            background: #07111f;
             color: white;
             font-family: Arial, sans-serif;
-            text-align: center;
+            overflow: hidden;
         }
 
-        h1 {
-            margin: 20px;
+        #topbar {
+            height: 70px;
+            background: #101c2d;
+            display: flex;
+            align-items: center;
+            padding: 0 25px;
+            box-sizing: border-box;
+            border-bottom: 3px solid #243b55;
+        }
+
+        #title {
+            font-size: 30px;
+            font-weight: bold;
+            margin-right: 60px;
+        }
+
+        #cash {
+            font-size: 22px;
+            color: #54e85a;
         }
 
         #map {
-            width: 90%;
-            height: 500px;
-            margin: auto;
-            background: #1b3a2a;
-            border: 3px solid #555;
-            position: relative;
+            width: 100vw;
+            height: calc(100vh - 70px);
         }
 
         .country {
-            position: absolute;
-            padding: 12px;
-            background: #555;
-            border: 2px solid white;
-            color: white;
+            stroke: #17202b;
+            stroke-width: 0.7;
             cursor: pointer;
-            border-radius: 8px;
+            transition: 0.15s;
         }
 
         .country:hover {
-            background: #777;
+            stroke: white;
+            stroke-width: 1.8;
+            filter: brightness(1.25);
         }
 
-        #usa {
-            left: 15%;
-            top: 25%;
+        #countryInfo {
+            position: absolute;
+            right: 20px;
+            bottom: 20px;
+            width: 250px;
+            background: #101c2d;
+            border: 2px solid #39516e;
+            border-radius: 12px;
+            padding: 18px;
+            display: none;
+            box-shadow: 0 5px 20px #000;
         }
 
-        #brazil {
-            left: 30%;
-            top: 55%;
+        #countryName {
+            font-size: 24px;
+            font-weight: bold;
+            margin-bottom: 10px;
         }
 
-        #southAfrica {
-            left: 45%;
-            top: 75%;
-        }
-
-        #uk {
-            left: 48%;
-            top: 20%;
-        }
-
-        #india {
-            left: 65%;
-            top: 45%;
-        }
-
-        #japan {
-            left: 82%;
-            top: 35%;
+        #instruction {
+            position: absolute;
+            left: 20px;
+            bottom: 20px;
+            background: #101c2d;
+            padding: 12px 18px;
+            border-radius: 10px;
+            border: 2px solid #39516e;
         }
     </style>
 </head>
 
 <body>
 
-    <h1>GLOBAL EMPIRE</h1>
-
-    <h2>💰 Cash: $10,000</h2>
-
-    <div id="map">
-
-        <button class="country" id="usa"
-            onclick="selectCountry('USA')">
-            🇺🇸 USA
-        </button>
-
-        <button class="country" id="brazil"
-            onclick="selectCountry('Brazil')">
-            🇧🇷 Brazil
-        </button>
-
-        <button class="country" id="southAfrica"
-            onclick="selectCountry('South Africa')">
-            🇿🇦 South Africa
-        </button>
-
-        <button class="country" id="uk"
-            onclick="selectCountry('United Kingdom')">
-            🇬🇧 UK
-        </button>
-
-        <button class="country" id="india"
-            onclick="selectCountry('India')">
-            🇮🇳 India
-        </button>
-
-        <button class="country" id="japan"
-            onclick="selectCountry('Japan')">
-            🇯🇵 Japan
-        </button>
-
+    <div id="topbar">
+        <div id="title">🌍 GLOBAL EMPIRE</div>
+        <div id="cash">💰 $10,000</div>
     </div>
 
-    <h2 id="selectedCountry">Select a country</h2>
+    <svg id="map"></svg>
+
+    <div id="instruction">
+        Click a country to select it
+    </div>
+
+    <div id="countryInfo">
+        <div id="countryName"></div>
+        <div>Market: Unknown</div>
+        <div>Population: Unknown</div>
+        <br>
+        <button onclick="expandCountry()">Expand into country</button>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/d3@7"></script>
+    <script src="https://cdn.jsdelivr.net/npm/topojson-client@3"></script>
 
     <script>
-        function selectCountry(country) {
-            document.getElementById("selectedCountry").innerText =
-                country + " selected!";
+
+        const svg = d3.select("#map");
+
+        const width = window.innerWidth;
+        const height = window.innerHeight - 70;
+
+        svg
+            .attr("width", width)
+            .attr("height", height);
+
+        const projection = d3.geoNaturalEarth1()
+            .fitSize(
+                [width - 40, height - 40],
+                { type: "Sphere" }
+            );
+
+        const path = d3.geoPath()
+            .projection(projection);
+
+        d3.json(
+            "https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json"
+        ).then(function(world) {
+
+            const countries =
+                topojson.feature(
+                    world,
+                    world.objects.countries
+                );
+
+            svg.append("rect")
+                .attr("width", width)
+                .attr("height", height)
+                .attr("fill", "#0877b9");
+
+            svg.selectAll(".country")
+                .data(countries.features)
+                .enter()
+                .append("path")
+                .attr("class", "country")
+                .attr("d", path)
+                .attr("fill", function(d, i) {
+
+                    const colours = [
+                        "#55a630",
+                        "#80b918",
+                        "#ffca3a",
+                        "#ff924c",
+                        "#ff595e",
+                        "#1982c4",
+                        "#6a4c93"
+                    ];
+
+                    return colours[i % colours.length];
+                })
+                .on("click", function(event, d) {
+
+                    let name = "Country";
+
+                    if (d.properties && d.properties.name) {
+                        name = d.properties.name;
+                    }
+
+                    document.getElementById(
+                        "countryName"
+                    ).innerText = name;
+
+                    document.getElementById(
+                        "countryInfo"
+                    ).style.display = "block";
+
+                });
+
+        });
+
+        function expandCountry() {
+            alert("Expansion system coming next!");
         }
+
     </script>
 
 </body>
