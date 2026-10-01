@@ -2,19 +2,75 @@
 <html>
 <head>
     <title>Global Empire</title>
+
+    <style>
+        body {
+            margin: 0;
+            background: #111;
+            color: white;
+            font-family: Arial, sans-serif;
+            text-align: center;
+        }
+
+        h1 {
+            margin: 20px;
+        }
+
+        #map {
+            width: 90%;
+            height: 500px;
+            margin: auto;
+            background: #1b3a2a;
+            border: 3px solid #555;
+            position: relative;
+        }
+
+        .country {
+            position: absolute;
+            padding: 15px;
+            background: #555;
+            border: 2px solid white;
+            color: white;
+            cursor: pointer;
+            border-radius: 8px;
+        }
+
+        .country:hover {
+            background: #777;
+        }
+
+        #southAfrica {
+            left: 45%;
+            top: 65%;
+        }
+    </style>
 </head>
 
 <body>
 
-    <h1>GLOBAL EMPIRE</h1>
+    <h1>GLOBAL POES EMPIRE</h1>
 
     <h2>💰 Cash: $10,000</h2>
 
-    <h2>🌍 World Map</h2>
+    <div id="map">
 
-    <button onclick="alert('South Africa selected!')">
-        South Africa
-    </button>
+        <button
+            class="country"
+            id="southAfrica"
+            onclick="selectCountry('South Africa')">
+            🇿🇦 South Africa
+        </button>
+
+    </div>
+
+    <h2 id="selectedCountry">Select a country</h2>
+
+    <script>
+        function selectCountry(country) {
+            document.getElementById("selectedCountry").innerText =
+                country + " selected!";
+        }
+    </script>
 
 </body>
 </html>
