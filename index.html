@@ -53,7 +53,7 @@
 
         .owned {
             fill: #54e85a !important;
-            stroke: #ffffff;
+            stroke: white;
             stroke-width: 1.5;
         }
 
@@ -61,7 +61,7 @@
             position: absolute;
             right: 20px;
             bottom: 20px;
-            width: 280px;
+            width: 300px;
             background: #101c2d;
             border: 2px solid #39516e;
             border-radius: 12px;
@@ -93,22 +93,23 @@
             background: #54e85a;
         }
 
-        #expandButton {
+        button {
             width: 100%;
             margin-top: 15px;
             padding: 12px;
             border: none;
             border-radius: 8px;
             background: #54e85a;
+            color: #07111f;
             font-weight: bold;
             cursor: pointer;
         }
 
-        #expandButton:hover {
+        button:hover {
             background: #7aff80;
         }
 
-        #expandButton:disabled {
+        button:disabled {
             background: #555;
             color: #aaa;
             cursor: not-allowed;
@@ -122,6 +123,12 @@
             padding: 12px 18px;
             border-radius: 10px;
             border: 2px solid #39516e;
+        }
+
+        #startMessage {
+            color: #ffd166;
+            font-weight: bold;
+            margin-bottom: 10px;
         }
     </style>
 </head>
@@ -143,13 +150,17 @@
     <svg id="map"></svg>
 
     <div id="instruction">
-        Click a country to select it
+        🌍 Click a country to choose where your empire begins
     </div>
 
     <div id="countryInfo">
 
         <div id="countryName">
             Country
+        </div>
+
+        <div id="startMessage">
+            Choose this country as your starting location.
         </div>
 
         <div class="stat">
@@ -178,13 +189,8 @@
             </div>
         </div>
 
-        <div class="stat">
-            💵 Expansion Cost:
-            $<span id="cost">-</span>
-        </div>
-
-        <button id="expandButton" onclick="expandCountry()">
-            EXPAND INTO COUNTRY
+        <button id="startButton" onclick="startEmpire()">
+            START EMPIRE HERE
         </button>
 
     </div>
@@ -200,8 +206,16 @@
 
         let selectedElement = null;
 
+        let gameStarted = false;
+
+        let startingCountry = null;
+
         const ownedCountries = new Set();
 
+
+        /*
+            Country information.
+        */
 
         const countryData = {
 
@@ -209,56 +223,49 @@
                 population: "62M",
                 market: 65,
                 demand: 75,
-                police: 35,
-                cost: 5000
+                police: 35
             },
 
             "United States": {
                 population: "335M",
                 market: 95,
                 demand: 90,
-                police: 75,
-                cost: 25000
+                police: 75
             },
 
             "Brazil": {
                 population: "216M",
                 market: 85,
                 demand: 85,
-                police: 50,
-                cost: 15000
+                police: 50
             },
 
             "India": {
                 population: "1.4B",
                 market: 95,
                 demand: 95,
-                police: 60,
-                cost: 20000
+                police: 60
             },
 
             "China": {
                 population: "1.4B",
                 market: 95,
                 demand: 80,
-                police: 85,
-                cost: 30000
+                police: 85
             },
 
             "United Kingdom": {
                 population: "68M",
                 market: 80,
                 demand: 75,
-                police: 80,
-                cost: 18000
+                police: 80
             },
 
             "Japan": {
                 population: "124M",
                 market: 85,
                 demand: 70,
-                police: 75,
-                cost: 22000
+                police: 75
             }
 
         };
@@ -285,6 +292,10 @@
         const path = d3.geoPath()
             .projection(projection);
 
+
+        /*
+            Load world map.
+        */
 
         d3.json(
             "https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json"
@@ -336,6 +347,10 @@
         });
 
 
+        /*
+            Select a country.
+        */
+
         function selectCountry(country, element) {
 
             selectedCountry = country;
@@ -377,11 +392,6 @@
                 ).style.width =
                     data.police + "%";
 
-                document.getElementById(
-                    "cost"
-                ).innerText =
-                    data.cost.toLocaleString();
-
             } else {
 
                 document.getElementById(
@@ -400,29 +410,36 @@
                     "policeBar"
                 ).style.width = "50%";
 
-                document.getElementById(
-                    "cost"
-                ).innerText = "10,000";
-
             }
 
 
             const button =
                 document.getElementById(
-                    "expandButton"
+                    "startButton"
                 );
 
 
-            if (ownedCountries.has(country)) {
+            if (gameStarted) {
 
-                button.innerText = "ALREADY CONTROLLED";
+                document.getElementById(
+                    "startMessage"
+                ).innerText =
+                    "Your empire has already started.";
+
+                button.innerText =
+                    "EMPIRE ALREADY STARTED";
 
                 button.disabled = true;
 
             } else {
 
+                document.getElementById(
+                    "startMessage"
+                ).innerText =
+                    "Choose this country as your starting location.";
+
                 button.innerText =
-                    "EXPAND INTO COUNTRY";
+                    "START EMPIRE HERE";
 
                 button.disabled = false;
 
@@ -431,38 +448,25 @@
         }
 
 
-        function expandCountry() {
+        /*
+            Start the game.
+        */
+
+        function startEmpire() {
 
             if (!selectedCountry) {
                 return;
             }
 
 
-            if (ownedCountries.has(selectedCountry)) {
+            if (gameStarted) {
                 return;
             }
 
 
-            const data =
-                countryData[selectedCountry];
+            gameStarted = true;
 
-
-            const cost =
-                data ? data.cost : 10000;
-
-
-            if (cash < cost) {
-
-                alert(
-                    "Not enough cash!"
-                );
-
-                return;
-
-            }
-
-
-            cash -= cost;
+            startingCountry = selectedCountry;
 
 
             ownedCountries.add(
@@ -480,21 +484,26 @@
 
 
             document.getElementById(
-                "cashAmount"
+                "startMessage"
             ).innerText =
-                cash.toLocaleString();
+                "🏴 Your empire starts here!";
 
 
-            const button =
-                document.getElementById(
-                    "expandButton"
-                );
+            document.getElementById(
+                "startButton"
+            ).innerText =
+                "YOUR CAPITAL";
 
 
-            button.innerText =
-                "CONTROLLED";
+            document.getElementById(
+                "startButton"
+            ).disabled = true;
 
-            button.disabled = true;
+
+            document.getElementById(
+                "instruction"
+            ).innerText =
+                "🌍 Your empire has begun!";
 
         }
 
