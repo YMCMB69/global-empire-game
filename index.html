@@ -136,6 +136,18 @@
             font-weight: bold;
             margin-bottom: 10px;
         }
+
+        #incomeMessage {
+            position: absolute;
+            top: 90px;
+            right: 25px;
+            background: #101c2d;
+            border: 2px solid #54e85a;
+            border-radius: 10px;
+            padding: 10px 15px;
+            color: #54e85a;
+            display: none;
+        }
     </style>
 </head>
 
@@ -155,6 +167,10 @@
             📅 DAY <span id="dayNumber">1</span>
         </div>
 
+    </div>
+
+    <div id="incomeMessage">
+        +$500 income
     </div>
 
     <svg id="map"></svg>
@@ -180,6 +196,7 @@
 
         <div class="stat">
             💰 Market Size
+
             <div class="bar">
                 <div id="marketBar" class="fill"></div>
             </div>
@@ -187,6 +204,7 @@
 
         <div class="stat">
             📈 Demand
+
             <div class="bar">
                 <div id="demandBar" class="fill"></div>
             </div>
@@ -194,6 +212,7 @@
 
         <div class="stat">
             🚨 Police Pressure
+
             <div class="bar">
                 <div id="policeBar" class="fill"></div>
             </div>
@@ -291,7 +310,8 @@
             const save =
                 JSON.parse(savedGame);
 
-            cash = save.cash ?? 10000;
+            cash =
+                save.cash ?? 10000;
 
             gameStarted =
                 save.gameStarted ?? false;
@@ -305,7 +325,8 @@
             if (save.ownedCountries) {
 
                 save.ownedCountries.forEach(
-                    country => ownedCountries.add(country)
+                    country =>
+                        ownedCountries.add(country)
                 );
 
             }
@@ -314,7 +335,7 @@
 
 
         /*
-            UPDATE THE SCREEN
+            UPDATE TOP BAR
         */
 
         function updateTopBar() {
@@ -365,7 +386,7 @@
 
 
         /*
-            GAME CLOCK
+            GAME DAY
 
             One real minute =
             one game day.
@@ -377,21 +398,70 @@
                 return;
             }
 
+
             day++;
 
+
+            /*
+                Income
+
+                Every controlled country
+                currently produces $500.
+            */
+
+            const income =
+                ownedCountries.size * 500;
+
+            cash += income;
+
+
             updateTopBar();
+
+
+            /*
+                Show income notification.
+            */
+
+            const message =
+                document.getElementById(
+                    "incomeMessage"
+                );
+
+            message.innerText =
+                "+$" +
+                income.toLocaleString() +
+                " income";
+
+            message.style.display =
+                "block";
+
+
+            setTimeout(function() {
+
+                message.style.display =
+                    "none";
+
+            }, 2500);
+
 
             saveGame();
 
         }, 60000);
 
 
-        const svg = d3.select("#map");
+        /*
+            MAP
+        */
 
-        const width = window.innerWidth;
+        const svg =
+            d3.select("#map");
+
+        const width =
+            window.innerWidth;
 
         const height =
             window.innerHeight - 70;
+
 
         svg
             .attr("width", width)
@@ -434,15 +504,21 @@
                 .append("path")
                 .attr("class", function(d) {
 
-                    let classes = "country";
+                    let classes =
+                        "country";
+
 
                     if (
                         ownedCountries.has(
                             d.properties.name
                         )
                     ) {
-                        classes += " owned";
+
+                        classes +=
+                            " owned";
+
                     }
+
 
                     return classes;
 
@@ -451,6 +527,7 @@
                 .attr("fill", function(d, i) {
 
                     const colours = [
+
                         "#55a630",
                         "#80b918",
                         "#ffca3a",
@@ -458,9 +535,13 @@
                         "#ff595e",
                         "#1982c4",
                         "#6a4c93"
+
                     ];
 
-                    return colours[i % colours.length];
+
+                    return colours[
+                        i % colours.length
+                    ];
 
                 })
                 .on("click", function(event, d) {
@@ -485,14 +566,20 @@
         });
 
 
+        /*
+            SELECT COUNTRY
+        */
+
         function selectCountry(
             country,
             element
         ) {
 
-            selectedCountry = country;
+            selectedCountry =
+                country;
 
-            selectedElement = element;
+            selectedElement =
+                element;
 
 
             document.getElementById(
@@ -576,7 +663,8 @@
                 button.innerText =
                     "CONTROLLED";
 
-                button.disabled = true;
+                button.disabled =
+                    true;
 
             }
 
@@ -590,7 +678,8 @@
                 button.innerText =
                     "START EMPIRE HERE";
 
-                button.disabled = false;
+                button.disabled =
+                    false;
 
             }
 
@@ -604,12 +693,17 @@
                 button.innerText =
                     "EXPANSION COMING SOON";
 
-                button.disabled = true;
+                button.disabled =
+                    true;
 
             }
 
         }
 
+
+        /*
+            START EMPIRE
+        */
 
         function startEmpire() {
 
@@ -617,14 +711,19 @@
                 return;
             }
 
+
             if (gameStarted) {
                 return;
             }
 
-            gameStarted = true;
+
+            gameStarted =
+                true;
+
 
             startingCountry =
                 selectedCountry;
+
 
             ownedCountries.add(
                 selectedCountry
@@ -654,7 +753,8 @@
 
             document.getElementById(
                 "startButton"
-            ).disabled = true;
+            ).disabled =
+                true;
 
 
             document.getElementById(
